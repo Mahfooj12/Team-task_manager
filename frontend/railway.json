@@ -1,9 +1,11 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && npm run build"
+    "buildCommand": "npm install && npm run build",
+    "nixPkgs": ["nodejs_20"]
   },
   "deploy": {
-    "startCommand": "npx serve -s dist"
+    "startCommand": "npx serve -s dist",
+    "healthcheckPath": "/"
   }
 }
