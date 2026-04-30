@@ -2,7 +2,9 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://backend-production-a698.up.railway.app';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://backend-production-a698.up.railway.app';
 
 const AuthContext = createContext();
 
@@ -13,37 +15,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  axios.defaults.headers.common['Authorization'] = token ? `Bearer ${token}` : '';
-
+  // ✅ set token header globally
   useEffect(() => {
     if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
     } else {
+      delete axios.defaults.headers.common['Authorization'];
       setLoading(false);
     }
   }, [token]);
 
+  // ================= FETCH USER =================
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`${API_URL}/auth/me`);
+      const response = await axios.get(`${API_URL}/api/auth/me`);
       setUser(response.data);
     } catch (error) {
       localStorage.removeItem('token');
       setToken(null);
-      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
+  // ================= LOGIN =================
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+      const response = await axios.post(
+        `${API_URL}/api/auth/login`,
+        { email, password }
+      );
+
       const { token, user } = response.data;
+
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       toast.success('Login successful!');
       return true;
     } catch (error) {
@@ -52,14 +62,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ================= SIGNUP =================
   const signup = async (name, email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/signup`, { name, email, password });
+      const response = await axios.post(
+        `${API_URL}/api/auth/register`,   // ✅ FIXED
+        { name, email, password }
+      );
+
       const { token, user } = response.data;
+
       localStorage.setItem('token', token);
       setToken(token);
       setUser(user);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       toast.success('Account created successfully!');
       return true;
     } catch (error) {
@@ -68,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ================= LOGOUT =================
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);

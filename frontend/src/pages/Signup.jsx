@@ -7,24 +7,58 @@ function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
   const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name || !email || !password) {
+      return;
+    }
+
     setLoading(true);
-    const success = await signup(name, email, password);
-    setLoading(false);
-    if (success) {
-      navigate('/');
+
+    try {
+      const success = await signup(name, email, password);
+
+      if (success) {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div
+      className="container"
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '30px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Create Account</h2>
+        <h2
+          style={{
+            textAlign: 'center',
+            marginBottom: '30px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
+          Create Account
+        </h2>
+
         <form onSubmit={handleSubmit}>
+          {/* Name */}
           <div className="form-group">
             <label>Name</label>
             <input
@@ -35,6 +69,8 @@ function Signup() {
               placeholder="Enter your name"
             />
           </div>
+
+          {/* Email */}
           <div className="form-group">
             <label>Email</label>
             <input
@@ -45,6 +81,8 @@ function Signup() {
               placeholder="Enter your email"
             />
           </div>
+
+          {/* Password */}
           <div className="form-group">
             <label>Password</label>
             <input
@@ -53,15 +91,26 @@ function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="Enter password (min 6 characters)"
-              minLength="6"
+              minLength={6}
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%' }}
+            disabled={loading}
+          >
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
+
         <p style={{ textAlign: 'center', marginTop: '20px' }}>
-          Already have an account? <Link to="/login" style={{ color: '#667eea' }}>Login</Link>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: '#667eea' }}>
+            Login
+          </Link>
         </p>
       </div>
     </div>
