@@ -2,13 +2,11 @@ FROM node:18
 
 WORKDIR /app
 
-# copy from frontend folder
-COPY frontend/package*.json ./
+COPY package*.json ./
 
 RUN npm install
 
-# copy full frontend code
-COPY frontend/ .
+COPY . .
 
 RUN npm run build
 
