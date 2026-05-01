@@ -266,9 +266,12 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// Delete task
+// Delete task - FIXED VERSION
 router.delete('/:id', auth, async (req, res) => {
   try {
+    console.log('🗑️ Deleting task:', req.params.id);
+    console.log('👤 User:', req.user._id, 'Role:', req.user.role);
+    
     const task = await Task.findById(req.params.id);
     
     if (!task) {
@@ -278,30 +281,89 @@ router.delete('/:id', auth, async (req, res) => {
       });
     }
     
+    console.log('📋 Task found:', task.title);
+    console.log('📁 Project ID:', task.project);
+    
+    // Check if project exists
     const project = await Project.findById(task.project);
+    if (!project) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Project not found' 
+      });
+    }
+    
+    // Check permissions - Allow if user is:
+    // 1. Project owner
+    // 2. Task creator (assignedBy)
+    // 3. Admin user
     const isOwner = project.owner.toString() === req.user._id.toString();
+    const isCreator = task.assignedBy && task.assignedBy.toString() === req.user._id.toString();
     const isAdmin = req.user.role === 'Admin';
     
-    if (!isOwner && !isAdmin) {
+    console.log('Permissions - isOwner:', isOwner, 'isCreator:', isCreator, 'isAdmin:', isAdmin);
+    
+    if (!isOwner && !isCreator && !isAdmin) {
       return res.status(403).json({ 
         success: false,
-        message: 'Only project owner or admin can delete tasks' 
+        message: 'Access denied. Only project owner, task creator, or admin can delete tasks.' 
       });
     }
     
     await task.deleteOne();
+    
+    console.log('✅ Task deleted successfully');
     
     res.json({ 
       success: true,
       message: 'Task deleted successfully' 
     });
   } catch (error) {
-    console.error('Error deleting task:', error);
+    console.error('❌ Error deleting task:', error);
     res.status(500).json({ 
       success: false,
-      message: error.message 
+      message: 'Failed to delete task',
+      error: error.message 
     });
   }
 });
+
+// Delete task
+// router.delete('/:id', auth, async (req, res) => {
+//   try {
+//     const task = await Task.findById(req.params.id);
+    
+//     if (!task) {
+//       return res.status(404).json({ 
+//         success: false,
+//         message: 'Task not found' 
+//       });
+//     }
+    
+//     const project = await Project.findById(task.project);
+//     const isOwner = project.owner.toString() === req.user._id.toString();
+//     const isAdmin = req.user.role === 'Admin';
+    
+//     if (!isOwner && !isAdmin) {
+//       return res.status(403).json({ 
+//         success: false,
+//         message: 'Only project owner or admin can delete tasks' 
+//       });
+//     }
+    
+//     await task.deleteOne();
+    
+//     res.json({ 
+//       success: true,
+//       message: 'Task deleted successfully' 
+//     });
+//   } catch (error) {
+//     console.error('Error deleting task:', error);
+//     res.status(500).json({ 
+//       success: false,
+//       message: error.message 
+//     });
+//   }
+// });
 
 module.exports = router;
