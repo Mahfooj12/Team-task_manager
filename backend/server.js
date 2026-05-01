@@ -12,8 +12,17 @@ const userRoutes = require('./routes/users');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// ✅ FIXED CORS configuration - Added PATCH method
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Added PATCH here
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Handle preflight requests for all routes
+app.options('*', cors());
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -30,7 +39,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// ✅ Health check route
+// Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'ok', 
@@ -38,7 +47,6 @@ app.get('/health', (req, res) => {
     uptime: process.uptime()
   });
 });
-
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -50,8 +58,8 @@ app.use('/api/users', userRoutes);
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
-    message: err.message || 'Something went wrong!',
-    success: false
+    success: false,
+    message: err.message || 'Something went wrong!'
   });
 });
 
@@ -60,10 +68,12 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 API available at http://localhost:${PORT}/api`);
+  console.log(`🔧 Allowed CORS methods: GET, POST, PUT, PATCH, DELETE, OPTIONS`);
 });

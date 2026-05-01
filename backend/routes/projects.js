@@ -1,23 +1,38 @@
 const express = require('express');
-const Project = require('../models/Project');
-const User = require('../models/User');
-const { auth, isAdmin } = require('../middleware/auth');
+const Project = require('../models/Projects');
+const User = require('../models/Users');
+const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Get all projects (user's projects)
 router.get('/', auth, async (req, res) => {
   try {
+    console.log('Fetching projects for user:', req.user._id);
+    
     const projects = await Project.find({
       $or: [
         { owner: req.user._id },
         { members: req.user._id }
       ]
-    }).populate('owner', 'name email').populate('members', 'name email');
+    })
+    .populate('owner', 'name email')
+    .populate('members', 'name email')
+    .sort({ createdAt: -1 });
     
-    res.json(projects);
+    console.log(`Found ${projects.length} projects`);
+    
+    res.json({
+      success: true,
+      projects: projects
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch projects',
+      error: error.message 
+    });
   }
 });
 
@@ -29,18 +44,34 @@ router.get('/:id', auth, async (req, res) => {
       .populate('members', 'name email');
     
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Project not found' 
+      });
     }
     
     // Check if user has access
-    if (project.owner.toString() !== req.user._id.toString() && 
-        !project.members.some(m => m._id.toString() === req.user._id.toString())) {
-      return res.status(403).json({ message: 'Access denied' });
+    const isOwner = project.owner._id.toString() === req.user._id.toString();
+    const isMember = project.members.some(m => m._id.toString() === req.user._id.toString());
+    
+    if (!isOwner && !isMember) {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Access denied' 
+      });
     }
     
-    res.json(project);
+    res.json({
+      success: true,
+      project: project
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching project:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch project',
+      error: error.message 
+    });
   }
 });
 
@@ -49,9 +80,18 @@ router.post('/', auth, async (req, res) => {
   try {
     const { name, description, members } = req.body;
     
+    console.log('Creating project:', { name, description, userId: req.user._id });
+    
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Project name is required' 
+      });
+    }
+    
     const project = new Project({
-      name,
-      description,
+      name: name.trim(),
+      description: description || '',
       owner: req.user._id,
       members: members || []
     });
@@ -59,9 +99,20 @@ router.post('/', auth, async (req, res) => {
     await project.save();
     await project.populate('owner', 'name email');
     
-    res.status(201).json(project);
+    console.log('Project created successfully:', project._id);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Project created successfully',
+      project: project
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating project:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create project',
+      error: error.message 
+    });
   }
 });
 
@@ -71,24 +122,42 @@ router.put('/:id', auth, async (req, res) => {
     const project = await Project.findById(req.params.id);
     
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Project not found' 
+      });
     }
     
     // Only owner or admin can update
     if (project.owner.toString() !== req.user._id.toString() && req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Only project owner can update this project' 
+      });
     }
     
     const { name, description, status, members } = req.body;
     if (name) project.name = name;
-    if (description) project.description = description;
+    if (description !== undefined) project.description = description;
     if (status) project.status = status;
     if (members) project.members = members;
     
     await project.save();
-    res.json(project);
+    await project.populate('owner', 'name email');
+    await project.populate('members', 'name email');
+    
+    res.json({
+      success: true,
+      message: 'Project updated successfully',
+      project: project
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error updating project:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update project',
+      error: error.message 
+    });
   }
 });
 
@@ -98,17 +167,35 @@ router.delete('/:id', auth, async (req, res) => {
     const project = await Project.findById(req.params.id);
     
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Project not found' 
+      });
     }
     
+    // Only owner or admin can delete
     if (project.owner.toString() !== req.user._id.toString() && req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Only project owner can delete this project' 
+      });
     }
     
     await project.deleteOne();
-    res.json({ message: 'Project deleted successfully' });
+    
+    console.log('Project deleted:', req.params.id);
+    
+    res.json({ 
+      success: true,
+      message: 'Project deleted successfully' 
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error deleting project:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to delete project',
+      error: error.message 
+    });
   }
 });
 
@@ -118,28 +205,92 @@ router.post('/:id/members', auth, async (req, res) => {
     const project = await Project.findById(req.params.id);
     
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Project not found' 
+      });
     }
     
     if (project.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Only project owner can add members' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Only project owner can add members' 
+      });
     }
     
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'User not found' 
+      });
     }
     
-    if (!project.members.includes(user._id)) {
-      project.members.push(user._id);
-      await project.save();
+    if (project.members.includes(user._id)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'User is already a member' 
+      });
     }
     
-    res.json(project);
+    project.members.push(user._id);
+    await project.save();
+    await project.populate('members', 'name email');
+    
+    res.json({
+      success: true,
+      message: 'Member added successfully',
+      project: project
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error adding member:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to add member',
+      error: error.message 
+    });
+  }
+});
+
+// Remove member from project
+router.delete('/:id/members/:memberId', auth, async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    
+    if (!project) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Project not found' 
+      });
+    }
+    
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Only project owner can remove members' 
+      });
+    }
+    
+    project.members = project.members.filter(
+      m => m.toString() !== req.params.memberId
+    );
+    
+    await project.save();
+    
+    res.json({
+      success: true,
+      message: 'Member removed successfully',
+      project: project
+    });
+  } catch (error) {
+    console.error('Error removing member:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to remove member',
+      error: error.message 
+    });
   }
 });
 

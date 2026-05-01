@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+// ✅ FIXED: Change from 'User' to 'Users' (matching your file name)
+const User = require('../models/Users');
 
 const auth = async (req, res, next) => {
   try {
@@ -10,7 +11,10 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
+    
+    // Support both userId and id formats
+    const userId = decoded.userId || decoded.id;
+    const user = await User.findById(userId).select('-password');
     
     if (!user) {
       throw new Error();
@@ -20,6 +24,7 @@ const auth = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
     res.status(401).json({ message: 'Please authenticate', success: false });
   }
 };
