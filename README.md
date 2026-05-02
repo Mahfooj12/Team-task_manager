@@ -1,11 +1,11 @@
-================================================================================
+=========================================
                     TEAM TASK MANAGER - FULL STACK MERN APP
-================================================================================
+=========================================
 
 A complete task management application with role-based access control (Admin/Member),
 project management, and task tracking.
 
-================================================================================
+=========================================
                                   FEATURES
 ================================================================================
 
@@ -38,7 +38,7 @@ project management, and task tracking.
    - Tasks grouped by status
    - Recent projects list
 
-================================================================================
+=========================================
                             TECHNOLOGY STACK
 ================================================================================
 
@@ -62,7 +62,7 @@ DEPLOYMENT:
    - Railway (Backend + Frontend)
    - MongoDB Atlas (Database)
 
-================================================================================
+=========================================
                           INSTALLATION GUIDE
 ================================================================================
 
@@ -97,7 +97,7 @@ STEP 4: ACCESS THE APPLICATION
    Frontend: http://localhost:3000
    Backend API: http://localhost:5000
 
-================================================================================
+=========================================
                               API ENDPOINTS
 ================================================================================
 
@@ -121,7 +121,7 @@ TASKS:
 USERS:
    GET    /api/users           - Get all users (Admin only)
 
-================================================================================
+=========================================
                            ENVIRONMENT VARIABLES
 ================================================================================
 
@@ -134,7 +134,7 @@ BACKEND (.env):
 FRONTEND (.env):
    VITE_API_URL         - Backend API URL
 
-================================================================================
+=========================================
                               DATABASE SCHEMA
 ================================================================================
 
@@ -162,45 +162,7 @@ TASK:
    - priority (String: Low/Medium/High/Urgent)
    - dueDate (Date)
 
-================================================================================
-                              PROJECT STRUCTURE
-================================================================================
-
-task-manager/
-├── backend/
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Project.js
-│   │   └── Task.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── projects.js
-│   │   ├── tasks.js
-│   │   └── users.js
-│   ├── middleware/
-│   │   └── auth.js
-│   ├── server.js
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── Navbar.jsx
-│   │   ├── pages/
-│   │   │   ├── Login.jsx
-│   │   │   ├── Signup.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Projects.jsx
-│   │   │   └── Tasks.jsx
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── package.json
-│   └── vite.config.js
-└── README.txt
-
-================================================================================
+=========================================
                               DEPLOYMENT
 ================================================================================
 
@@ -211,7 +173,7 @@ FRONTEND URL: https://mohd-mahfooj-020f.up.railway.app
 
 GITHUB REPOSITORY: https://github.com/Mahfooj12/Team-task_manager
 
-================================================================================
+=========================================
                               TEST CREDENTIALS
 ================================================================================
 
@@ -223,42 +185,7 @@ MEMBER USER:
    Email: member@example.com
    Password: member123
 
-================================================================================
-                              TROUBLESHOOTING
-================================================================================
-
-1. MongoDB Connection Error:
-   - Check MONGODB_URI in .env file
-   - Verify IP whitelist in MongoDB Atlas (add 0.0.0.0/0)
-
-2. JWT Error:
-   - Make sure JWT_SECRET is set in .env
-
-3. CORS Error:
-   - Check VITE_API_URL in frontend .env
-   - Backend CORS is configured to accept all origins
-
-4. Port Already in Use:
-   - Kill process on port 5000 or 3000
-   - Or change PORT in .env
-
-5. Frontend Build Fails:
-   - Delete node_modules and run npm install again
-   - Check Node.js version (v18+)
-
-================================================================================
-                              PROJECT STATUS
-================================================================================
-
-Authentication: Working
-Role-based Access: Working
-Project CRUD: Working
-Task CRUD: Working
-Dashboard: Working
-Database Integration: Working
-Deployment: Live on Railway
-
-================================================================================
+=====================================
                               CONTACT & SUPPORT
 ================================================================================
 
@@ -266,14 +193,7 @@ Developer: Mohammad Mahfooj
 GitHub: https://github.com/Mahfooj12
 Project Repository: https://github.com/Mahfooj12/Team-task_manager
 
-================================================================================
-                                  LICENSE
-================================================================================
-
-This project is created for assignment submission.
-All rights reserved.
-
-================================================================================
+=======================================
                                 CONCLUSION
 ================================================================================
 
@@ -282,6 +202,6 @@ manage projects and tasks efficiently with proper role-based access control.
 
 Thank you for reviewing this project!
 
-================================================================================
+========================================
 # Update .env with your MongoDB URI and JWT secret
 npm run dev
